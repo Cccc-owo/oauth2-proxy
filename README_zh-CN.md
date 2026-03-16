@@ -10,6 +10,8 @@
 - Outlook
 - iCloud Mail
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+
 ## 功能
 
 这个项目提供一组最小 API，用来：

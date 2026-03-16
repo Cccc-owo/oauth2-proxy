@@ -10,6 +10,8 @@ Supports:
 - Outlook
 - iCloud Mail
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+
 For Chinese documentation, see [README_zh-CN.md](/home/iscccc/Code/oath2-proxy/README_zh-CN.md).
 
 ## What It Does
