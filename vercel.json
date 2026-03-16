@@ -1,13 +1,6 @@
 {
   "version": 2,
   "framework": null,
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/docs",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/oauth2/callback",

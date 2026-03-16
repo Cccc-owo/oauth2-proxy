@@ -10,6 +10,7 @@ const rootDir = path.resolve(__dirname, '..')
 const port = Number(process.env.PORT || 3000)
 
 const staticRoutes = new Map([
+  ['/', { file: 'index.html', type: 'text/html; charset=utf-8' }],
   ['/docs', { file: 'docs/index.html', type: 'text/html; charset=utf-8' }],
   ['/docs/', { file: 'docs/index.html', type: 'text/html; charset=utf-8' }],
 ])
@@ -112,13 +113,6 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || `localhost:${port}`}`)
     const { pathname, searchParams } = url
-
-    if (pathname === '/') {
-      res.statusCode = 302
-      res.setHeader('Location', '/docs')
-      res.end()
-      return
-    }
 
     if (staticRoutes.has(pathname)) {
       const route = staticRoutes.get(pathname)
