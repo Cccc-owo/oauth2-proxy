@@ -6,7 +6,7 @@ import authUrlHandler from '../api/auth-url.js'
 import providersHandler from '../api/providers.js'
 import refreshHandler from '../api/refresh.js'
 import tokenHandler from '../api/token.js'
-import { applyRequestPolicy } from '../api/_lib/response.js'
+import { applyRequestPolicy, validateFields } from '../api/_lib/response.js'
 import { getProviderConfig } from '../api/_lib/providers.js'
 import { getClientIp, rateLimit } from '../api/_lib/rateLimit.js'
 import { createSignedState } from '../api/_lib/security.js'
@@ -404,6 +404,23 @@ test('refresh accepts provider refresh tokens with plus signs', async () => {
   )
 })
 
+test('validateFields accepts falsy but present values', () => {
+  assert.equal(validateFields({ enabled: false, count: 0, name: '' }, ['enabled', 'count', 'name']), null)
+})
+
+test('getClientIp falls back to socket address when proxy headers are invalid', async () => {
+  await withEnv({ TRUST_PROXY_HEADERS: 'true' }, () => {
+    const ip = getClientIp({
+      headers: {
+        'x-forwarded-for': 'not-an-ip',
+      },
+      socket: { remoteAddress: '127.0.0.1' },
+    })
+
+    assert.equal(ip, '127.0.0.1')
+  })
+})
+
 test('rateLimit evicts old entries instead of rejecting new identifiers when full', () => {
   for (let index = 0; index < 10000; index++) {
     rateLimit(`saturation-${index}`, 10, 60000)
@@ -589,6 +606,92 @@ test('token exchange requires the same origin when state was issued to a browser
 
       assert.equal(res.statusCode, 400)
       assert.deepEqual(res.body, { error: 'State requires a matching request origin' })
+    },
+  )
+})
+
+test('token exchange responses disable caching', async () => {
+  await withEnv(
+    {
+      ALLOWED_ORIGINS: '*',
+      STATE_SECRET: TEST_STATE_SECRET,
+      GMAIL_CLIENT_ID: 'client-id',
+      GMAIL_CLIENT_SECRET: 'client-secret',
+      GMAIL_REDIRECT_URI: 'https://app.example/oauth2/callback',
+    },
+    async () => {
+      const originalFetch = global.fetch
+      global.fetch = async () => ({
+        ok: true,
+        json: async () => ({
+          access_token: 'access-token',
+          refresh_token: 'refresh-token',
+          expires_in: 3600,
+        }),
+      })
+
+      try {
+        const state = createSignedState({
+          provider: 'gmail',
+          codeChallenge: TEST_CODE_CHALLENGE,
+          codeChallengeMethod: 'S256',
+          requestOrigin: null,
+        })
+        const req = {
+          method: 'POST',
+          headers: {},
+          socket: { remoteAddress: '127.0.0.1' },
+          body: { provider: 'gmail', code: 'abc+def/ghi=123', state, codeVerifier: TEST_CODE_VERIFIER },
+        }
+        const res = createResponse()
+
+        await tokenHandler(req, res)
+
+        assert.equal(res.statusCode, 200)
+        assert.equal(res.headers['Cache-Control'], 'no-store')
+        assert.equal(res.headers.Pragma, 'no-cache')
+      } finally {
+        global.fetch = originalFetch
+      }
+    },
+  )
+})
+
+test('refresh responses disable caching', async () => {
+  await withEnv(
+    {
+      ALLOWED_ORIGINS: '*',
+      GMAIL_CLIENT_ID: 'client-id',
+      GMAIL_CLIENT_SECRET: 'client-secret',
+      GMAIL_REDIRECT_URI: 'https://app.example/oauth2/callback',
+    },
+    async () => {
+      const originalFetch = global.fetch
+      global.fetch = async () => ({
+        ok: true,
+        json: async () => ({
+          access_token: 'access-token',
+          expires_in: 3600,
+        }),
+      })
+
+      try {
+        const req = {
+          method: 'POST',
+          headers: {},
+          socket: { remoteAddress: '127.0.0.1' },
+          body: { provider: 'gmail', refreshToken: 'refresh+token/ghi=123' },
+        }
+        const res = createResponse()
+
+        await refreshHandler(req, res)
+
+        assert.equal(res.statusCode, 200)
+        assert.equal(res.headers['Cache-Control'], 'no-store')
+        assert.equal(res.headers.Pragma, 'no-cache')
+      } finally {
+        global.fetch = originalFetch
+      }
     },
   )
 })

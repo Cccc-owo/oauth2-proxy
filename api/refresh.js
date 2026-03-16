@@ -57,7 +57,7 @@ export default async function handler(req, res) {
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token || refreshToken, // Some providers don't return new refresh token
       expiresAt,
-    })
+    }, { noStore: true })
   } catch (error) {
     console.error('Token refresh error:', error)
     if (error instanceof UpstreamOAuthError) {

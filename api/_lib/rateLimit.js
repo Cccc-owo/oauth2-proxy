@@ -66,20 +66,20 @@ export function getClientIp(req) {
   const socketIp = req.socket?.remoteAddress
   const trustProxyHeaders = process.env.TRUST_PROXY_HEADERS === 'true'
 
-  let ip = socketIp || 'unknown'
-
-  if (trustProxyHeaders) {
-    const forwarded = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-    const realIp = req.headers['x-real-ip']
-    ip = forwarded || realIp || socketIp || 'unknown'
+  if (!trustProxyHeaders) {
+    return socketIp || 'unknown'
   }
 
-  // Basic validation - prevent injection
-  if (ip !== 'unknown' && !/^[\d.:a-fA-F]+$/.test(ip)) {
-    return 'invalid'
+  const forwarded = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+  const realIp = req.headers['x-real-ip']
+  const candidate = forwarded || realIp
+
+  // Basic validation - prevent injection. Fall back to the socket IP if proxy headers are malformed.
+  if (candidate && /^[\d.:a-fA-F]+$/.test(candidate)) {
+    return candidate
   }
 
-  return ip
+  return socketIp || 'unknown'
 }
 
 // Validate request origin (optional, for production)

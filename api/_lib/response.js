@@ -69,17 +69,26 @@ export function sendError(res, statusCode, message) {
 }
 
 // Standard success response
-export function sendSuccess(res, data) {
+export function sendSuccess(res, data, options = {}) {
+  const { noStore = false } = options
+
+  if (noStore) {
+    res.setHeader('Cache-Control', 'no-store')
+    res.setHeader('Pragma', 'no-cache')
+  }
+
   res.status(200).json(data)
 }
 
 // Validate required fields
 export function validateFields(body, requiredFields) {
-  if (!body || typeof body !== 'object') {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return 'Invalid request body'
   }
 
-  const missing = requiredFields.filter(field => !body[field])
+  const missing = requiredFields.filter(
+    field => !(field in body) || body[field] === undefined || body[field] === null,
+  )
   if (missing.length > 0) {
     return `Missing required fields: ${missing.join(', ')}`
   }

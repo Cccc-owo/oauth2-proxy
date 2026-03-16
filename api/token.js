@@ -83,7 +83,7 @@ export default async function handler(req, res) {
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token,
       expiresAt,
-    })
+    }, { noStore: true })
   } catch (error) {
     console.error('Token exchange error:', error)
     if (error instanceof UpstreamOAuthError) {
