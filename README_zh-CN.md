@@ -1,33 +1,33 @@
 # OAuth2 Proxy
 
-A small serverless OAuth2 proxy for browser and public-client flows.
+一个轻量的 serverless OAuth2 代理，适合浏览器和公开客户端接入。
 
-Supports:
+支持：
 
 - Gmail
 - Outlook
 - iCloud Mail
 
-For Chinese documentation, see [README_zh-CN.md](/home/iscccc/Code/oath2-proxy/README_zh-CN.md).
+英文说明见 [README.md](/home/iscccc/Code/oath2-proxy/README.md)。
 
-## What It Does
+## 功能
 
-This project provides a minimal API to:
+这个项目提供一组最小 API，用来：
 
-- list available providers
-- generate an authorization URL
-- exchange an authorization code for tokens
-- refresh access tokens
+- 获取可用 provider 列表
+- 生成授权链接
+- 用授权码换取 token
+- 刷新 access token
 
-It is designed for public clients and uses PKCE and signed `state`.
+项目面向公开客户端，默认依赖 PKCE 和签名 `state` 提供安全保护。
 
-## Endpoints
+## 接口
 
 ### `GET /api/providers`
 
-Returns configured and enabled providers.
+返回已配置且已启用的 provider。
 
-Response:
+响应示例：
 
 ```json
 {
@@ -37,14 +37,14 @@ Response:
 
 ### `GET /api/auth-url`
 
-Query parameters:
+查询参数：
 
 - `provider`
 - `codeChallenge`
 - `codeChallengeMethod=S256`
-- optional `state`
+- 可选 `state`
 
-Response:
+响应示例：
 
 ```json
 {
@@ -73,15 +73,15 @@ Response:
 }
 ```
 
-## Environment Variables
+## 环境变量
 
-Required:
+必填：
 
 ```bash
 STATE_SECRET=replace_with_a_long_random_secret
 ```
 
-Provider config:
+Provider 配置：
 
 ```bash
 GMAIL_CLIENT_ID=your_client_id
@@ -99,7 +99,7 @@ APPLE_KEY_ID=your_apple_key_id
 APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ```
 
-Optional:
+可选：
 
 ```bash
 ALLOWED_ORIGINS=https://yourdomain.com
@@ -107,33 +107,33 @@ ENABLED_PROVIDERS=gmail,outlook
 TRUST_PROXY_HEADERS=true
 ```
 
-Notes:
+说明：
 
-- `STATE_SECRET` must be at least 32 characters.
-- If `ENABLED_PROVIDERS` is unset, all fully configured providers are available.
-- iCloud requires an HTTPS redirect URI and does not allow `localhost`.
+- `STATE_SECRET` 长度至少 32 个字符。
+- 如果不设置 `ENABLED_PROVIDERS`，默认启用所有已完整配置的 provider。
+- iCloud 的回调地址必须是 HTTPS，且不能是 `localhost`。
 
-## Local Development
+## 本地开发
 
 ```bash
 npm install
 npm test
 ```
 
-To run locally:
+本地启动：
 
 ```bash
 npm run dev
 ```
 
-## Security Notes
+## 安全说明
 
-- PKCE is required
-- OAuth `state` is signed and short-lived
-- browser origins can be restricted with `ALLOWED_ORIGINS`
-- rate limiting is in-memory and best-effort
-- token responses are sent with `Cache-Control: no-store`
+- 强制使用 PKCE
+- OAuth `state` 会签名并设置短期有效期
+- 可通过 `ALLOWED_ORIGINS` 限制浏览器来源
+- 限流为进程内 best-effort 实现
+- token 响应默认带 `Cache-Control: no-store`
 
-## Deploy
+## 部署
 
-This project is intended for Vercel-style serverless deployment, but the API handlers can also be adapted to other Node.js serverless platforms.
+项目默认面向 Vercel 这类 serverless 平台，也可以很容易改造成其他 Node.js serverless 环境。
