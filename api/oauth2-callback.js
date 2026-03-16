@@ -1,10 +1,4 @@
 export default function handler(req, res) {
-  const forwardedProto = req.headers['x-forwarded-proto']
-  const host = req.headers.host
-  const baseUrl = forwardedProto && host
-    ? `${forwardedProto}://${host}`
-    : null
-
   const target = new URL('mailyou://oauth/callback')
 
   const append = (key) => {
@@ -18,10 +12,6 @@ export default function handler(req, res) {
   append('state')
   append('error')
   append('error_description')
-
-  const fallbackUrl = baseUrl
-    ? `${baseUrl}/docs`
-    : 'https://oauth2-proxy.iscccc.cc/docs'
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.setHeader('Cache-Control', 'no-store')
@@ -71,7 +61,6 @@ export default function handler(req, res) {
     </main>
     <script>
       const target = ${JSON.stringify(target.toString())};
-      const fallback = ${JSON.stringify(fallbackUrl)};
       window.location.replace(target);
       setTimeout(() => {
         const link = document.querySelector('a');
@@ -79,9 +68,6 @@ export default function handler(req, res) {
           link.setAttribute('href', target);
         }
       }, 50);
-      setTimeout(() => {
-        window.location.href = fallback;
-      }, 2500);
     </script>
   </body>
 </html>`)

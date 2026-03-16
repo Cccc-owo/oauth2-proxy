@@ -4,6 +4,7 @@ import { createHash, generateKeyPairSync } from 'node:crypto'
 
 import authUrlHandler from '../api/auth-url.js'
 import openApiHandler from '../api/openapi.js'
+import oauth2CallbackHandler from '../api/oauth2-callback.js'
 import providersHandler from '../api/providers.js'
 import refreshHandler from '../api/refresh.js'
 import tokenHandler from '../api/token.js'
@@ -32,6 +33,11 @@ function createResponse() {
     },
     json(payload) {
       this.body = payload
+      return this
+    },
+    send(payload) {
+      this.body = payload
+      this.ended = true
       return this
     },
     end() {
@@ -150,6 +156,25 @@ test('providers endpoint only lists fully configured providers', async () => {
       assert.deepEqual(res.body, { providers: [] })
     },
   )
+})
+
+test('oauth2 callback page does not redirect to docs', async () => {
+  const req = {
+    headers: {},
+    query: {
+      code: 'auth-code',
+      state: 'signed-state',
+    },
+  }
+  const res = createResponse()
+
+  oauth2CallbackHandler(req, res)
+
+  assert.equal(res.statusCode, 200)
+  assert.equal(res.headers['Cache-Control'], 'no-store')
+  assert.match(res.body, /mailyou:\/\/oauth\/callback\?code=auth-code&state=signed-state/)
+  assert.doesNotMatch(res.body, /window\.location\.href = .*docs/)
+  assert.doesNotMatch(res.body, /\/docs/)
 })
 
 test('access token auth is disabled by default', async () => {
