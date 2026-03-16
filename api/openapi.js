@@ -16,6 +16,7 @@ function getServerUrl(req) {
 function buildSpec(req) {
   const providerNames = Object.keys(providers)
   const serverUrl = getServerUrl(req)
+  const accessTokenSecurity = [{ AccessTokenBearer: [] }]
 
   return {
     openapi: '3.1.0',
@@ -129,6 +130,8 @@ function buildSpec(req) {
         post: {
           tags: ['OAuth'],
           summary: 'Exchange an authorization code for tokens',
+          description: 'Exchanges an authorization code for OAuth tokens. Requires a Bearer access token when ACCESS_TOKEN_AUTH_ENABLED=true.',
+          security: accessTokenSecurity,
           requestBody: {
             required: true,
             content: {
@@ -149,6 +152,8 @@ function buildSpec(req) {
               },
             },
             400: { $ref: '#/components/responses/ErrorResponse' },
+            401: { $ref: '#/components/responses/ErrorResponse' },
+            403: { $ref: '#/components/responses/ErrorResponse' },
             405: { $ref: '#/components/responses/ErrorResponse' },
             429: { $ref: '#/components/responses/ErrorResponse' },
             500: { $ref: '#/components/responses/ErrorResponse' },
@@ -161,6 +166,8 @@ function buildSpec(req) {
         post: {
           tags: ['OAuth'],
           summary: 'Refresh an access token',
+          description: 'Refreshes an OAuth access token. Requires a Bearer access token when ACCESS_TOKEN_AUTH_ENABLED=true.',
+          security: accessTokenSecurity,
           requestBody: {
             required: true,
             content: {
@@ -181,6 +188,8 @@ function buildSpec(req) {
               },
             },
             400: { $ref: '#/components/responses/ErrorResponse' },
+            401: { $ref: '#/components/responses/ErrorResponse' },
+            403: { $ref: '#/components/responses/ErrorResponse' },
             405: { $ref: '#/components/responses/ErrorResponse' },
             429: { $ref: '#/components/responses/ErrorResponse' },
             500: { $ref: '#/components/responses/ErrorResponse' },
@@ -191,6 +200,13 @@ function buildSpec(req) {
       },
     },
     components: {
+      securitySchemes: {
+        AccessTokenBearer: {
+          type: 'http',
+          scheme: 'bearer',
+          description: 'Internal access token for this proxy. Only required when ACCESS_TOKEN_AUTH_ENABLED=true.',
+        },
+      },
       schemas: {
         TokenExchangeRequest: {
           type: 'object',

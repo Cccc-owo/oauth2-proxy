@@ -2,6 +2,7 @@ import { getProviderConfig } from './_lib/providers.js'
 import { normalizeTokenPayload, postOAuthForm, UpstreamOAuthError } from './_lib/oauth.js'
 import { rateLimit, getClientIp } from './_lib/rateLimit.js'
 import { applyRequestPolicy, handleOptions, sendError, sendSuccess, validateFields } from './_lib/response.js'
+import { requireAccessTokenAuth } from './_lib/accessTokenAuth.js'
 
 export default async function handler(req, res) {
   // Handle OPTIONS
@@ -13,6 +14,11 @@ export default async function handler(req, res) {
   // Only allow POST
   if (req.method !== 'POST') {
     return sendError(res, 405, 'Method not allowed')
+  }
+
+  const authResult = requireAccessTokenAuth(req)
+  if (!authResult.allowed) {
+    return sendError(res, authResult.statusCode, authResult.message)
   }
 
   // Rate limiting: 10 requests per minute per IP (refresh is more frequent)

@@ -70,6 +70,8 @@ APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ```bash
 ALLOWED_ORIGINS=https://yourdomain.com
 ENABLED_PROVIDERS=gmail,outlook
+ACCESS_TOKEN_AUTH_ENABLED=true
+ACCESS_TOKEN_AUTH_TOKENS=replace_with_a_long_random_secret,replace_with_next_secret
 TRUST_PROXY_HEADERS=true
 ```
 
@@ -77,5 +79,7 @@ TRUST_PROXY_HEADERS=true
 
 - `STATE_SECRET` 长度至少 32 个字符。
 - 不设置 `ENABLED_PROVIDERS` 时，默认启用所有已完整配置的 provider。
+- 如果 `ACCESS_TOKEN_AUTH_ENABLED=true`，则 `/api/token` 和 `/api/refresh` 必须携带 `Authorization: Bearer <token>`。
+- `ACCESS_TOKEN_AUTH_TOKENS` 支持配置一个或多个逗号分隔的内部访问密钥，便于轮换。
 - iCloud 回调地址必须是 HTTPS，且不能是 `localhost`。
 - Token 响应会带 `Cache-Control: no-store`。

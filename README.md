@@ -70,6 +70,8 @@ Optional:
 ```bash
 ALLOWED_ORIGINS=https://yourdomain.com
 ENABLED_PROVIDERS=gmail,outlook
+ACCESS_TOKEN_AUTH_ENABLED=true
+ACCESS_TOKEN_AUTH_TOKENS=replace_with_a_long_random_secret,replace_with_next_secret
 TRUST_PROXY_HEADERS=true
 ```
 
@@ -77,5 +79,7 @@ TRUST_PROXY_HEADERS=true
 
 - `STATE_SECRET` must be at least 32 characters.
 - If `ENABLED_PROVIDERS` is unset, all fully configured providers are enabled.
+- If `ACCESS_TOKEN_AUTH_ENABLED=true`, `/api/token` and `/api/refresh` require `Authorization: Bearer <token>`.
+- `ACCESS_TOKEN_AUTH_TOKENS` accepts one or more comma-separated internal access tokens for rotation.
 - iCloud requires an HTTPS redirect URI and does not allow `localhost`.
 - Token responses are sent with `Cache-Control: no-store`.

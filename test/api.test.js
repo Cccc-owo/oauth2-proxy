@@ -7,6 +7,7 @@ import openApiHandler from '../api/openapi.js'
 import providersHandler from '../api/providers.js'
 import refreshHandler from '../api/refresh.js'
 import tokenHandler from '../api/token.js'
+import { isAccessTokenAuthEnabled, requireAccessTokenAuth } from '../api/_lib/accessTokenAuth.js'
 import { applyRequestPolicy, validateFields } from '../api/_lib/response.js'
 import { getProviderConfig } from '../api/_lib/providers.js'
 import { getClientIp, rateLimit } from '../api/_lib/rateLimit.js'
@@ -147,6 +148,50 @@ test('providers endpoint only lists fully configured providers', async () => {
 
       assert.equal(res.statusCode, 200)
       assert.deepEqual(res.body, { providers: [] })
+    },
+  )
+})
+
+test('access token auth is disabled by default', async () => {
+  await withEnv(
+    {
+      ACCESS_TOKEN_AUTH_ENABLED: undefined,
+      ACCESS_TOKEN_AUTH_TOKENS: undefined,
+      ACCESS_TOKEN_AUTH_TOKEN: undefined,
+    },
+    () => {
+      assert.equal(isAccessTokenAuthEnabled(), false)
+      assert.deepEqual(requireAccessTokenAuth({ headers: {} }), { allowed: true })
+    },
+  )
+})
+
+test('access token auth rejects missing bearer token when enabled', async () => {
+  await withEnv(
+    {
+      ACCESS_TOKEN_AUTH_ENABLED: 'true',
+      ACCESS_TOKEN_AUTH_TOKENS: 'secret-one',
+    },
+    () => {
+      assert.deepEqual(
+        requireAccessTokenAuth({ headers: {} }),
+        { allowed: false, statusCode: 401, message: 'Missing Authorization header' },
+      )
+    },
+  )
+})
+
+test('access token auth accepts configured bearer token', async () => {
+  await withEnv(
+    {
+      ACCESS_TOKEN_AUTH_ENABLED: 'true',
+      ACCESS_TOKEN_AUTH_TOKENS: 'secret-one, secret-two',
+    },
+    () => {
+      assert.deepEqual(
+        requireAccessTokenAuth({ headers: { authorization: 'Bearer secret-two' } }),
+        { allowed: true },
+      )
     },
   )
 })
@@ -429,6 +474,137 @@ test('refresh accepts provider refresh tokens with plus signs', async () => {
       } finally {
         global.fetch = originalFetch
       }
+    },
+  )
+})
+
+test('token exchange requires bearer auth when access token auth is enabled', async () => {
+  await withEnv(
+    {
+      ALLOWED_ORIGINS: '*',
+      STATE_SECRET: TEST_STATE_SECRET,
+      ACCESS_TOKEN_AUTH_ENABLED: 'true',
+      ACCESS_TOKEN_AUTH_TOKENS: 'internal-secret',
+      GMAIL_CLIENT_ID: 'client-id',
+      GMAIL_CLIENT_SECRET: 'client-secret',
+      GMAIL_REDIRECT_URI: 'https://app.example/oauth2/callback',
+    },
+    async () => {
+      const state = createSignedState({
+        provider: 'gmail',
+        codeChallenge: TEST_CODE_CHALLENGE,
+        codeChallengeMethod: 'S256',
+        requestOrigin: null,
+      })
+      const req = {
+        method: 'POST',
+        headers: {},
+        socket: { remoteAddress: '127.0.0.1' },
+        body: { provider: 'gmail', code: 'abc+def/ghi=123', state, codeVerifier: TEST_CODE_VERIFIER },
+      }
+      const res = createResponse()
+
+      await tokenHandler(req, res)
+
+      assert.equal(res.statusCode, 401)
+      assert.deepEqual(res.body, { error: 'Missing Authorization header' })
+    },
+  )
+})
+
+test('token exchange accepts configured bearer auth when enabled', async () => {
+  await withEnv(
+    {
+      ALLOWED_ORIGINS: '*',
+      STATE_SECRET: TEST_STATE_SECRET,
+      ACCESS_TOKEN_AUTH_ENABLED: 'true',
+      ACCESS_TOKEN_AUTH_TOKENS: 'internal-secret',
+      GMAIL_CLIENT_ID: 'client-id',
+      GMAIL_CLIENT_SECRET: 'client-secret',
+      GMAIL_REDIRECT_URI: 'https://app.example/oauth2/callback',
+    },
+    async () => {
+      const originalFetch = global.fetch
+      global.fetch = async () => ({
+        ok: true,
+        json: async () => ({
+          access_token: 'access-token',
+          refresh_token: 'refresh-token',
+          expires_in: 3600,
+        }),
+      })
+
+      try {
+        const state = createSignedState({
+          provider: 'gmail',
+          codeChallenge: TEST_CODE_CHALLENGE,
+          codeChallengeMethod: 'S256',
+          requestOrigin: null,
+        })
+        const req = {
+          method: 'POST',
+          headers: { authorization: 'Bearer internal-secret' },
+          socket: { remoteAddress: '127.0.0.1' },
+          body: { provider: 'gmail', code: 'abc+def/ghi=123', state, codeVerifier: TEST_CODE_VERIFIER },
+        }
+        const res = createResponse()
+
+        await tokenHandler(req, res)
+
+        assert.equal(res.statusCode, 200)
+        assert.equal(res.body.accessToken, 'access-token')
+      } finally {
+        global.fetch = originalFetch
+      }
+    },
+  )
+})
+
+test('refresh rejects invalid bearer token when access token auth is enabled', async () => {
+  await withEnv(
+    {
+      ALLOWED_ORIGINS: '*',
+      ACCESS_TOKEN_AUTH_ENABLED: 'true',
+      ACCESS_TOKEN_AUTH_TOKENS: 'internal-secret',
+      GMAIL_CLIENT_ID: 'client-id',
+      GMAIL_CLIENT_SECRET: 'client-secret',
+      GMAIL_REDIRECT_URI: 'https://app.example/oauth2/callback',
+    },
+    async () => {
+      const req = {
+        method: 'POST',
+        headers: { authorization: 'Bearer wrong-secret' },
+        socket: { remoteAddress: '127.0.0.1' },
+        body: { provider: 'gmail', refreshToken: 'refresh+token/ghi=123' },
+      }
+      const res = createResponse()
+
+      await refreshHandler(req, res)
+
+      assert.equal(res.statusCode, 403)
+      assert.deepEqual(res.body, { error: 'Invalid access token' })
+    },
+  )
+})
+
+test('token preflight bypasses access token auth', async () => {
+  await withEnv(
+    {
+      ALLOWED_ORIGINS: '*',
+      ACCESS_TOKEN_AUTH_ENABLED: 'true',
+      ACCESS_TOKEN_AUTH_TOKENS: 'internal-secret',
+    },
+    async () => {
+      const req = {
+        method: 'OPTIONS',
+        headers: {},
+      }
+      const res = createResponse()
+
+      await tokenHandler(req, res)
+
+      assert.equal(res.statusCode, 204)
+      assert.equal(res.ended, true)
     },
   )
 })
