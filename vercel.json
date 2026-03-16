@@ -7,5 +7,11 @@
       "destination": "/docs",
       "permanent": false
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/oauth2/callback",
+      "destination": "/api/oauth2-callback"
+    }
   ]
 }

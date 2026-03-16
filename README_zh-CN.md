@@ -16,6 +16,7 @@
 
 - `/docs` Swagger UI
 - `/api/openapi` OpenAPI JSON
+- `/oauth2/callback` OAuth 回调桥接路由，会跳回 `mailyou://oauth/callback`
 
 ## 本地开发
 
@@ -41,6 +42,14 @@ vercel --prod
 
 部署后访问同样的三个路径即可。
 
+如果你是给 MailYou 使用，这个代理在 OAuth provider 中登记的回调地址应当是：
+
+```bash
+https://your-proxy-domain.com/oauth2/callback
+```
+
+这个路由由代理自身处理，随后会通过自定义协议 `mailyou://oauth/callback` 把 OAuth 结果带回 MailYou。
+
 ## 必要配置
 
 ```bash
@@ -52,14 +61,14 @@ Provider 配置示例：
 ```bash
 GMAIL_CLIENT_ID=your_client_id
 GMAIL_CLIENT_SECRET=your_client_secret
-GMAIL_REDIRECT_URI=https://yourdomain.com/oauth2/callback
+GMAIL_REDIRECT_URI=https://your-proxy-domain.com/oauth2/callback
 
 OUTLOOK_CLIENT_ID=your_client_id
 OUTLOOK_CLIENT_SECRET=your_client_secret
-OUTLOOK_REDIRECT_URI=https://yourdomain.com/oauth2/callback
+OUTLOOK_REDIRECT_URI=https://your-proxy-domain.com/oauth2/callback
 
 ICLOUD_CLIENT_ID=your_service_id
-ICLOUD_REDIRECT_URI=https://yourdomain.com/oauth2/callback
+ICLOUD_REDIRECT_URI=https://your-proxy-domain.com/oauth2/callback
 APPLE_TEAM_ID=your_apple_team_id
 APPLE_KEY_ID=your_apple_key_id
 APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
@@ -81,5 +90,7 @@ TRUST_PROXY_HEADERS=true
 - 不设置 `ENABLED_PROVIDERS` 时，默认启用所有已完整配置的 provider。
 - 如果 `ACCESS_TOKEN_AUTH_ENABLED=true`，则 `/api/token` 和 `/api/refresh` 必须携带 `Authorization: Bearer <token>`。
 - `ACCESS_TOKEN_AUTH_TOKENS` 支持配置一个或多个逗号分隔的内部访问密钥，便于轮换。
+- Google、Outlook、iCloud 控制台中登记的回调地址必须与 `*_REDIRECT_URI` 完全一致。
+- 内置的 `/oauth2/callback` 路由主要用于 MailYou，会把 provider 返回结果跳转到 `mailyou://oauth/callback`。
 - iCloud 回调地址必须是 HTTPS，且不能是 `localhost`。
 - Token 响应会带 `Cache-Control: no-store`。
