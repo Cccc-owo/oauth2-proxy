@@ -1,5 +1,7 @@
 # OAuth2 Proxy
 
+[English](README.md) | 中文
+
 一个轻量的 serverless OAuth2 代理，适合浏览器和公开客户端接入。
 
 支持：
@@ -7,8 +9,6 @@
 - Gmail
 - Outlook
 - iCloud Mail
-
-英文说明见 [README.md](/home/iscccc/Code/oath2-proxy/README.md)。
 
 ## 功能
 

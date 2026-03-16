@@ -1,5 +1,7 @@
 # OAuth2 Proxy
 
+English | [中文](README_zh-CN.md)
+
 A small serverless OAuth2 proxy for browser and public-client flows.
 
 Supports:
