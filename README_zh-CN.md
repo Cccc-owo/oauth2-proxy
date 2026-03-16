@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-一个轻量的 serverless OAuth2 代理，适合浏览器和公开客户端接入。
+一个面向浏览器和公开客户端的轻量 serverless OAuth2 代理。
 
 支持：
 
@@ -10,80 +10,44 @@
 - Outlook
 - iCloud Mail
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+## 文档入口
 
-## 功能
+接口文档已经内置到项目中：
 
-这个项目提供一组最小 API，用来：
+- `/docs` Swagger UI
+- `/api/openapi` OpenAPI JSON
 
-- 获取可用 provider 列表
-- 生成授权链接
-- 用授权码换取 token
-- 刷新 access token
+## 本地开发
 
-项目面向公开客户端，默认依赖 PKCE 和签名 `state` 提供安全保护。
-
-## 接口
-
-### `GET /api/providers`
-
-返回已配置且已启用的 provider。
-
-响应示例：
-
-```json
-{
-  "providers": ["gmail", "outlook"]
-}
+```bash
+npm install
+npm test
+npm run dev
 ```
 
-### `GET /api/auth-url`
+本地访问：
 
-查询参数：
+- `http://localhost:3000/docs`
+- `http://localhost:3000/api/openapi`
 
-- `provider`
-- `codeChallenge`
-- `codeChallengeMethod=S256`
-- 可选 `state`
+## Vercel 部署
 
-响应示例：
+项目按 Vercel Serverless 方式设计。
 
-```json
-{
-  "authUrl": "https://provider.example/authorize?...",
-  "state": "signed_state"
-}
+```bash
+vercel
+vercel --prod
 ```
 
-### `POST /api/token`
+部署后访问同样的三个路径即可。
 
-```json
-{
-  "provider": "gmail",
-  "code": "authorization_code",
-  "state": "signed_state",
-  "codeVerifier": "pkce_code_verifier"
-}
-```
-
-### `POST /api/refresh`
-
-```json
-{
-  "provider": "gmail",
-  "refreshToken": "refresh_token"
-}
-```
-
-## 环境变量
-
-必填：
+## 必要配置
 
 ```bash
 STATE_SECRET=replace_with_a_long_random_secret
 ```
 
-Provider 配置：
+Provider 配置示例：
 
 ```bash
 GMAIL_CLIENT_ID=your_client_id
@@ -109,33 +73,9 @@ ENABLED_PROVIDERS=gmail,outlook
 TRUST_PROXY_HEADERS=true
 ```
 
-说明：
+## 说明
 
 - `STATE_SECRET` 长度至少 32 个字符。
-- 如果不设置 `ENABLED_PROVIDERS`，默认启用所有已完整配置的 provider。
-- iCloud 的回调地址必须是 HTTPS，且不能是 `localhost`。
-
-## 本地开发
-
-```bash
-npm install
-npm test
-```
-
-本地启动：
-
-```bash
-npm run dev
-```
-
-## 安全说明
-
-- 强制使用 PKCE
-- OAuth `state` 会签名并设置短期有效期
-- 可通过 `ALLOWED_ORIGINS` 限制浏览器来源
-- 限流为进程内 best-effort 实现
-- token 响应默认带 `Cache-Control: no-store`
-
-## 部署
-
-项目默认面向 Vercel 这类 serverless 平台，也可以很容易改造成其他 Node.js serverless 环境。
+- 不设置 `ENABLED_PROVIDERS` 时，默认启用所有已完整配置的 provider。
+- iCloud 回调地址必须是 HTTPS，且不能是 `localhost`。
+- Token 响应会带 `Cache-Control: no-store`。

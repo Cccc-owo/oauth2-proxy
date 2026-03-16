@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth2 Proxy API Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+      :root {
+        --bg: #f7f7f5;
+        --panel: #ffffff;
+        --line: #e5e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+      }
+
+      html {
+        box-sizing: border-box;
+        overflow-y: scroll;
+      }
+
+      *, *::before, *::after {
+        box-sizing: inherit;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        background: var(--bg);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .pagebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .pagebar strong {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .pagebar span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .pagebar a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 13px;
+      }
+
+      #swagger-ui {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .swagger-ui .topbar {
+        display: none;
+      }
+
+      .swagger-ui .information-container,
+      .swagger-ui .scheme-container,
+      .swagger-ui .opblock .opblock-summary {
+        box-shadow: none;
+      }
+
+      .swagger-ui .information-container,
+      .swagger-ui .scheme-container {
+        padding: 0;
+        background: transparent;
+      }
+
+      .swagger-ui .info {
+        margin: 18px 0 26px;
+      }
+
+      .swagger-ui .info .title {
+        color: var(--text);
+        font-size: 28px;
+        font-weight: 600;
+      }
+
+      .swagger-ui .info p,
+      .swagger-ui .info li,
+      .swagger-ui .markdown p,
+      .swagger-ui .markdown li,
+      .swagger-ui .opblock-description-wrapper p {
+        color: var(--muted);
+      }
+
+      .swagger-ui .scheme-container {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .swagger-ui .opblock {
+        border-width: 1px;
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .swagger-ui .opblock.opblock-get,
+      .swagger-ui .opblock.opblock-post {
+        border-color: var(--line);
+      }
+
+      .swagger-ui .opblock.opblock-get .opblock-summary,
+      .swagger-ui .opblock.opblock-post .opblock-summary {
+        border-color: var(--line);
+      }
+
+      .swagger-ui .opblock.opblock-get {
+        background: #fcfcfc;
+      }
+
+      .swagger-ui .opblock.opblock-post {
+        background: #fafafa;
+      }
+
+      .swagger-ui .opblock .opblock-summary-method {
+        min-width: 72px;
+        border-radius: 6px;
+      }
+
+      .swagger-ui .btn {
+        border-radius: 6px;
+        box-shadow: none;
+      }
+
+      .swagger-ui .btn.authorize,
+      .swagger-ui .btn.execute {
+        border-color: #d1d5db;
+        background: #111827;
+        color: #fff;
+      }
+
+      .swagger-ui .btn.clear {
+        border-color: #d1d5db;
+      }
+
+      .swagger-ui select,
+      .swagger-ui textarea,
+      .swagger-ui input[type=text] {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+      }
+
+      .swagger-ui table thead tr td,
+      .swagger-ui table thead tr th {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="pagebar">
+      <div>
+        <strong>OAuth2 Proxy API</strong>
+        <span>OpenAPI / Swagger UI</span>
+      </div>
+      <a href="/api/openapi">OpenAPI JSON</a>
+    </header>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js" crossorigin></script>
+    <script>
+      window.addEventListener('load', () => {
+        window.ui = window.SwaggerUIBundle({
+          url: '/api/openapi',
+          dom_id: '#swagger-ui',
+          deepLinking: true,
+          presets: [
+            window.SwaggerUIBundle.presets.apis,
+            window.SwaggerUIStandalonePreset,
+          ],
+          layout: 'BaseLayout',
+          displayRequestDuration: true,
+          docExpansion: 'list',
+          defaultModelsExpandDepth: 1,
+          tryItOutEnabled: true,
+        })
+      })
+    </script>
+  </body>
+</html>

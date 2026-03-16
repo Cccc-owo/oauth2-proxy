@@ -1,3 +1,11 @@
 {
-  "version": 2
+  "version": 2,
+  "framework": null,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/docs",
+      "permanent": false
+    }
+  ]
 }

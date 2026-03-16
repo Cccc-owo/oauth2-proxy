@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "node scripts/dev-server.mjs",
+    "dev:vercel": "vercel dev",
     "deploy": "vercel --prod",
     "test": "node --test"
   },

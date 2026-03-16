@@ -2,7 +2,7 @@
 
 English | [中文](README_zh-CN.md)
 
-A small serverless OAuth2 proxy for browser and public-client flows.
+Minimal serverless OAuth2 proxy for browser and public-client flows.
 
 Supports:
 
@@ -10,82 +10,44 @@ Supports:
 - Outlook
 - iCloud Mail
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+## Docs
 
-For Chinese documentation, see [README_zh-CN.md](/home/iscccc/Code/oath2-proxy/README_zh-CN.md).
+The API reference is built into the app:
 
-## What It Does
+- `/docs` Swagger UI
+- `/api/openapi` OpenAPI JSON
 
-This project provides a minimal API to:
+## Local Development
 
-- list available providers
-- generate an authorization URL
-- exchange an authorization code for tokens
-- refresh access tokens
-
-It is designed for public clients and uses PKCE and signed `state`.
-
-## Endpoints
-
-### `GET /api/providers`
-
-Returns configured and enabled providers.
-
-Response:
-
-```json
-{
-  "providers": ["gmail", "outlook"]
-}
+```bash
+npm install
+npm test
+npm run dev
 ```
 
-### `GET /api/auth-url`
+Open:
 
-Query parameters:
+- `http://localhost:3000/docs`
+- `http://localhost:3000/api/openapi`
 
-- `provider`
-- `codeChallenge`
-- `codeChallengeMethod=S256`
-- optional `state`
+## Vercel Deployment
 
-Response:
+This project is designed for Vercel serverless deployment.
 
-```json
-{
-  "authUrl": "https://provider.example/authorize?...",
-  "state": "signed_state"
-}
+```bash
+vercel
+vercel --prod
 ```
 
-### `POST /api/token`
+After deployment, use the same three paths on your deployment domain.
 
-```json
-{
-  "provider": "gmail",
-  "code": "authorization_code",
-  "state": "signed_state",
-  "codeVerifier": "pkce_code_verifier"
-}
-```
-
-### `POST /api/refresh`
-
-```json
-{
-  "provider": "gmail",
-  "refreshToken": "refresh_token"
-}
-```
-
-## Environment Variables
-
-Required:
+## Required Config
 
 ```bash
 STATE_SECRET=replace_with_a_long_random_secret
 ```
 
-Provider config:
+Provider examples:
 
 ```bash
 GMAIL_CLIENT_ID=your_client_id
@@ -111,33 +73,9 @@ ENABLED_PROVIDERS=gmail,outlook
 TRUST_PROXY_HEADERS=true
 ```
 
-Notes:
+## Notes
 
 - `STATE_SECRET` must be at least 32 characters.
-- If `ENABLED_PROVIDERS` is unset, all fully configured providers are available.
+- If `ENABLED_PROVIDERS` is unset, all fully configured providers are enabled.
 - iCloud requires an HTTPS redirect URI and does not allow `localhost`.
-
-## Local Development
-
-```bash
-npm install
-npm test
-```
-
-To run locally:
-
-```bash
-npm run dev
-```
-
-## Security Notes
-
-- PKCE is required
-- OAuth `state` is signed and short-lived
-- browser origins can be restricted with `ALLOWED_ORIGINS`
-- rate limiting is in-memory and best-effort
-- token responses are sent with `Cache-Control: no-store`
-
-## Deploy
-
-This project is intended for Vercel-style serverless deployment, but the API handlers can also be adapted to other Node.js serverless platforms.
+- Token responses are sent with `Cache-Control: no-store`.

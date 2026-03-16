@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { createHash, generateKeyPairSync } from 'node:crypto'
 
 import authUrlHandler from '../api/auth-url.js'
+import openApiHandler from '../api/openapi.js'
 import providersHandler from '../api/providers.js'
 import refreshHandler from '../api/refresh.js'
 import tokenHandler from '../api/token.js'
@@ -146,6 +147,34 @@ test('providers endpoint only lists fully configured providers', async () => {
 
       assert.equal(res.statusCode, 200)
       assert.deepEqual(res.body, { providers: [] })
+    },
+  )
+})
+
+test('openapi endpoint returns an OpenAPI document with the main routes', async () => {
+  await withEnv(
+    {
+      ALLOWED_ORIGINS: '*',
+    },
+    () => {
+      const req = {
+        method: 'GET',
+        headers: {
+          host: 'localhost:3000',
+        },
+      }
+      const res = createResponse()
+
+      openApiHandler(req, res)
+
+      assert.equal(res.statusCode, 200)
+      assert.equal(res.body.openapi, '3.1.0')
+      assert.equal(res.body.info.title, 'OAuth2 Proxy API')
+      assert.equal(res.body.servers[0].url, 'http://localhost:3000')
+      assert.ok(res.body.paths['/api/providers'])
+      assert.ok(res.body.paths['/api/auth-url'])
+      assert.ok(res.body.paths['/api/token'])
+      assert.ok(res.body.paths['/api/refresh'])
     },
   )
 })
