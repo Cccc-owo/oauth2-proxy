@@ -173,10 +173,37 @@ test('oauth2 callback page does not redirect to docs', async () => {
   assert.equal(res.statusCode, 200)
   assert.equal(res.headers['Cache-Control'], 'no-store')
   assert.match(res.body, /mailyou:\/\/oauth\/callback\?code=auth-code&state=signed-state/)
+  assert.match(res.body, /Returning to MailYou/)
   assert.match(res.body, /Copy callback link/)
   assert.match(res.body, /Callback link copied\./)
   assert.doesNotMatch(res.body, /window\.location\.href = .*docs/)
   assert.doesNotMatch(res.body, /\/docs/)
+})
+
+test('oauth2 callback page supports configurable branding and deeplink target', async () => {
+  await withEnv(
+    {
+      CALLBACK_APP_NAME: 'Example App',
+      CALLBACK_TARGET_URL: 'exampleapp://auth/complete',
+    },
+    () => {
+      const req = {
+        headers: {},
+        query: {
+          code: 'auth-code',
+          state: 'signed-state',
+        },
+      }
+      const res = createResponse()
+
+      oauth2CallbackHandler(req, res)
+
+      assert.equal(res.statusCode, 200)
+      assert.match(res.body, /Returning to Example App/)
+      assert.match(res.body, /Open Example App/)
+      assert.match(res.body, /exampleapp:\/\/auth\/complete\?code=auth-code&state=signed-state/)
+    },
+  )
 })
 
 test('access token auth is disabled by default', async () => {

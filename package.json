@@ -1,5 +1,5 @@
 {
-  "name": "mailyou-oauth2-proxy",
+  "name": "oauth2-proxy",
   "version": "1.0.0",
   "type": "module",
   "scripts": {

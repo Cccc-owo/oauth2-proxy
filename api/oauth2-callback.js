@@ -1,5 +1,16 @@
+function getCallbackAppName() {
+  const appName = process.env.CALLBACK_APP_NAME?.trim()
+  return appName || 'MailYou'
+}
+
+function getCallbackTargetBaseUrl() {
+  const targetUrl = process.env.CALLBACK_TARGET_URL?.trim()
+  return targetUrl || 'mailyou://oauth/callback'
+}
+
 export default function handler(req, res) {
-  const target = new URL('mailyou://oauth/callback')
+  const appName = getCallbackAppName()
+  const target = new URL(getCallbackTargetBaseUrl())
 
   const append = (key) => {
     const value = req.query[key]
@@ -22,7 +33,7 @@ export default function handler(req, res) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Return to MailYou</title>
+    <title>Return to ${appName}</title>
     <style>
       body {
         margin: 0;
@@ -87,10 +98,10 @@ export default function handler(req, res) {
   </head>
   <body>
     <main>
-      <h1>Returning to MailYou</h1>
-      <p>If MailYou does not open automatically, use the button below.</p>
+      <h1>Returning to ${appName}</h1>
+      <p>If ${appName} does not open automatically, use the button below.</p>
       <div class="actions">
-        <a href="${targetUrl}">Open MailYou</a>
+        <a href="${targetUrl}">Open ${appName}</a>
         <button id="copy-link" type="button">Copy callback link</button>
       </div>
       <p id="copy-status" aria-live="polite"></p>

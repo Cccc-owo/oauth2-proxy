@@ -16,7 +16,7 @@ The API reference is built into the app:
 
 - `/docs` Swagger UI
 - `/api/openapi` OpenAPI JSON
-- `/oauth2/callback` OAuth callback bridge that redirects back to `mailyou://oauth/callback`
+- `/oauth2/callback` OAuth callback bridge that redirects back to your app deeplink
 
 ## Local Development
 
@@ -42,19 +42,13 @@ vercel --prod
 
 After deployment, use the same three paths on your deployment domain.
 
-If you are using this proxy with MailYou, register your OAuth provider redirect URI as:
+Register your OAuth provider redirect URI as:
 
 ```bash
 https://your-proxy-domain.com/oauth2/callback
 ```
 
-For this deployment, that means:
-
-```bash
-https://oauth2-proxy.iscccc.cc/oauth2/callback
-```
-
-This route is handled by the proxy and forwards the OAuth result back into MailYou through the custom protocol `mailyou://oauth/callback`.
+This route is handled by the proxy and forwards the OAuth result back into your app through the deeplink configured by `CALLBACK_TARGET_URL`.
 
 ## Required Config
 
@@ -88,16 +82,8 @@ ENABLED_PROVIDERS=gmail,outlook
 ACCESS_TOKEN_AUTH_ENABLED=true
 ACCESS_TOKEN_AUTH_TOKENS=replace_with_a_long_random_secret,replace_with_next_secret
 TRUST_PROXY_HEADERS=true
-```
-
-MailYou deployment example:
-
-```bash
-GMAIL_REDIRECT_URI=https://oauth2-proxy.iscccc.cc/oauth2/callback
-OUTLOOK_REDIRECT_URI=https://oauth2-proxy.iscccc.cc/oauth2/callback
-ICLOUD_REDIRECT_URI=https://oauth2-proxy.iscccc.cc/oauth2/callback
-ACCESS_TOKEN_AUTH_ENABLED=true
-ACCESS_TOKEN_AUTH_TOKENS=replace_with_a_long_random_secret
+CALLBACK_APP_NAME=Your App
+CALLBACK_TARGET_URL=yourapp://oauth/callback
 ```
 
 ## Notes
@@ -107,6 +93,7 @@ ACCESS_TOKEN_AUTH_TOKENS=replace_with_a_long_random_secret
 - If `ACCESS_TOKEN_AUTH_ENABLED=true`, `/api/token` and `/api/refresh` require `Authorization: Bearer <token>`.
 - `ACCESS_TOKEN_AUTH_TOKENS` accepts one or more comma-separated internal access tokens for rotation.
 - Google, Outlook, and iCloud provider consoles must use the exact same callback URL configured in `*_REDIRECT_URI`.
-- The built-in `/oauth2/callback` route is intended for MailYou and redirects the provider result to `mailyou://oauth/callback`.
+- `CALLBACK_TARGET_URL` defaults to the legacy value `mailyou://oauth/callback` for backward compatibility.
+- `CALLBACK_APP_NAME` defaults to the legacy label `MailYou` and only affects the callback page UI text.
 - iCloud requires an HTTPS redirect URI and does not allow `localhost`.
 - Token responses are sent with `Cache-Control: no-store`.
