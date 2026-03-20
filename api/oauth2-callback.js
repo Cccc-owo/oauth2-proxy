@@ -13,6 +13,8 @@ export default function handler(req, res) {
   append('error')
   append('error_description')
 
+  const targetUrl = target.toString()
+
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.setHeader('Cache-Control', 'no-store')
   res.status(200).send(`<!doctype html>
@@ -46,9 +48,40 @@ export default function handler(req, res) {
         margin: 0 0 12px;
         line-height: 1.5;
       }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 18px 0 14px;
+      }
       a {
         color: #2157d5;
         font-weight: 600;
+      }
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font: inherit;
+        font-weight: 600;
+        color: #fff;
+        background: #2157d5;
+        cursor: pointer;
+      }
+      code {
+        display: block;
+        overflow-wrap: anywhere;
+        margin: 14px 0 0;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #eef3ff;
+        color: #182033;
+        font-size: 13px;
+      }
+      #copy-status {
+        min-height: 1.5em;
+        color: #4a5572;
+        font-size: 14px;
       }
     </style>
   </head>
@@ -56,11 +89,16 @@ export default function handler(req, res) {
     <main>
       <h1>Returning to MailYou</h1>
       <p>If MailYou does not open automatically, use the button below.</p>
-      <p><a href="${target.toString()}">Open MailYou</a></p>
+      <div class="actions">
+        <a href="${targetUrl}">Open MailYou</a>
+        <button id="copy-link" type="button">Copy callback link</button>
+      </div>
+      <p id="copy-status" aria-live="polite"></p>
+      <code id="callback-link">${targetUrl}</code>
       <p>You can close this tab after the app finishes signing in.</p>
     </main>
     <script>
-      const target = ${JSON.stringify(target.toString())};
+      const target = ${JSON.stringify(targetUrl)};
       window.location.replace(target);
       setTimeout(() => {
         const link = document.querySelector('a');
@@ -68,6 +106,31 @@ export default function handler(req, res) {
           link.setAttribute('href', target);
         }
       }, 50);
+
+      const copyButton = document.getElementById('copy-link');
+      const copyStatus = document.getElementById('copy-status');
+      const callbackLink = document.getElementById('callback-link');
+
+      async function copyCallbackLink() {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(target);
+          } else {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(callbackLink);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            document.execCommand('copy');
+            selection.removeAllRanges();
+          }
+          copyStatus.textContent = 'Callback link copied.';
+        } catch {
+          copyStatus.textContent = 'Copy failed. Please copy the link manually.';
+        }
+      }
+
+      copyButton.addEventListener('click', copyCallbackLink);
     </script>
   </body>
 </html>`)

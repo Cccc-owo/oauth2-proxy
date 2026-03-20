@@ -173,6 +173,8 @@ test('oauth2 callback page does not redirect to docs', async () => {
   assert.equal(res.statusCode, 200)
   assert.equal(res.headers['Cache-Control'], 'no-store')
   assert.match(res.body, /mailyou:\/\/oauth\/callback\?code=auth-code&state=signed-state/)
+  assert.match(res.body, /Copy callback link/)
+  assert.match(res.body, /Callback link copied\./)
   assert.doesNotMatch(res.body, /window\.location\.href = .*docs/)
   assert.doesNotMatch(res.body, /\/docs/)
 })
